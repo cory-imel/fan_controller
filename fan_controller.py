@@ -2,6 +2,7 @@ import paho.mqtt.client as mqttClient
 import time
 import configparser
 import RPi.GPIO as GPIO
+import ssl
 
 config = configparser.ConfigParser()
 config.read('config/config.txt')
@@ -36,26 +37,47 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, message):
-    print("Message received: " + message.payload)
+    print("Received message '" + str(message.payload) + "' on topic '" + message.topic + "' with QoS " + str(message.qos))
+    if str(message.topic) == "/bedroom_fan/light/set":
+        GPIO.output(31, 1)
+        time.sleep(0.5)
+        GPIO.output(31, 0)
+    elif str(message.topic) == "/bedroom_fan/speed/set":
+        print(str(message.payload))
+        if str(message.payload) == "off":
+            GPIO.output(33, 1)
+            time.sleep(0.5)
+            GPIO.output(33, 0)
+        elif str(message.payload) == "b'low'":
+            GPIO.output(29, 1)
+            time.sleep(0.5)
+            GPIO.output(29, 0)
+        elif str(message.payload) == "b'medium":
+            GPIO.output(36, 1)
+            time.sleep(0.5)
+            GPIO.output(36, 0)
+        elif str(message.payload) == "b'high":
+            GPIO.output(37, 1)
+            time.sleep(0.5)
+            GPIO.output(37, 0)
 
 
 Connected = False  # global variable for the state of the connection
 
-
 client = mqttClient.Client("Bedroom_Fan")  # create new instance
-client.tls_set(ca_certs=MQTT_CAFILE, certfile=MQTT_CRT, keyfile=MQTT_KEY)
+client.tls_set(ca_certs=MQTT_CAFILE, certfile=MQTT_CRT, keyfile=MQTT_KEY, cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLS, ciphers=None)
 client.username_pw_set(MQTT_USER, password=MQTT_PASSWORD)  # set username and password
 client.on_connect = on_connect  # attach function to callback
 client.on_message = on_message  # attach function to callback
 
-client.connect(MQTT_HOST, port=MQTT_PORT)  # connect to broker
+client.connect(MQTT_HOST, port=int(MQTT_PORT))  # connect to broker
 
 client.loop_start()  # start the loop
 
-while Connected != True:  # Wait for connection
+while not Connected:  # Wait for connection
     time.sleep(0.1)
 
-client.subscribe([("bedroom_fan/on/set", 0), ("bedroom_fan/light/set", 0)])
+client.subscribe([("/bedroom_fan/speed/set", 0), ("/bedroom_fan/light/set", 0)])
 
 try:
     while True:
@@ -65,3 +87,4 @@ except KeyboardInterrupt:
     print("exiting")
     client.disconnect()
     client.loop_stop()
+    GPIO.cleanup()
