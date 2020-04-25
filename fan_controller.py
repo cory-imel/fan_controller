@@ -3,6 +3,9 @@ import time
 import configparser
 import RPi.GPIO as GPIO
 import ssl
+import logging
+
+logging.basicConfig(filename="run.log", level=logging.DEBUG,format="%(asctime)s:%(levelname)s:%(message)s")
 
 config = configparser.ConfigParser()
 config.read('config/config.txt')
@@ -26,24 +29,24 @@ GPIO.setup(33, GPIO.OUT, initial=0)
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
 
-        print("Connected to broker")
+        logging.debug("Connected to broker")
 
         global Connected  # Use global variable
         Connected = True  # Signal connection
 
     else:
 
-        print("Connection failed")
+        logging.debug("Connection failed")
 
 
 def on_message(client, userdata, message):
-    print("Received message '" + str(message.payload) + "' on topic '" + message.topic + "' with QoS " + str(message.qos))
+    logging.debug("Received message '" + str(message.payload) + "' on topic '" + message.topic + "' with QoS " + str(message.qos))
     if str(message.topic) == "/bedroom_fan/light/set":
         GPIO.output(31, 1)
         time.sleep(0.5)
         GPIO.output(31, 0)
     elif str(message.topic) == "/bedroom_fan/speed/set":
-        print(str(message.payload))
+        logging.debug(str(message.payload))
         if str(message.payload) == "off":
             GPIO.output(33, 1)
             time.sleep(0.5)
@@ -84,7 +87,8 @@ try:
         time.sleep(1)
 
 except KeyboardInterrupt:
-    print("exiting")
+    logging.debug("exiting")
+finally:
     client.disconnect()
     client.loop_stop()
-    GPIO.cleanup()
+    GPIO.cleanup() 
