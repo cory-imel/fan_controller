@@ -74,17 +74,9 @@ try:
     client.on_message = on_message  # attach function to callback
 
     client.connect(MQTT_HOST, port=int(MQTT_PORT))  # connect to broker
-
-    client.loop_forever()  # start the loop
-
-    while not Connected:  # Wait for connection
-        time.sleep(0.1)
-
     client.subscribe([("/bedroom_fan/speed/set", 0), ("/bedroom_fan/light/set", 0)])
 
-# try:
-    # while True:
-        # time.sleep(1)
+    client.loop_forever(retry_first_connection=True)  # start the loop
 
 except KeyboardInterrupt:
     logging.debug("exiting")
