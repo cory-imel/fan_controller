@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(filename="/var/tmp/fan_controller.log", level=logging.DEBUG,format="%(asctime)s:%(levelname)s:%(message)s")
 
 config = configparser.ConfigParser()
-config.read('/home/xoxide/fan_controller/config/config.txt')
+config.read('/config/config.txt')
 
 MQTT_HOST = config.get('SETTINGS', 'MQTT_HOST')
 MQTT_USER = config.get('SETTINGS', 'MQTT_USER')
@@ -64,27 +64,27 @@ def on_message(client, userdata, message):
             time.sleep(0.5)
             GPIO.output(37, 0)
 
-
-Connected = False  # global variable for the state of the connection
-
-client = mqttClient.Client("Bedroom_Fan")  # create new instance
-client.tls_set(ca_certs=MQTT_CAFILE, certfile=MQTT_CRT, keyfile=MQTT_KEY, cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLS, ciphers=None)
-client.username_pw_set(MQTT_USER, password=MQTT_PASSWORD)  # set username and password
-client.on_connect = on_connect  # attach function to callback
-client.on_message = on_message  # attach function to callback
-
-client.connect(MQTT_HOST, port=int(MQTT_PORT))  # connect to broker
-
-client.loop_start()  # start the loop
-
-while not Connected:  # Wait for connection
-    time.sleep(0.1)
-
-client.subscribe([("/bedroom_fan/speed/set", 0), ("/bedroom_fan/light/set", 0)])
-
 try:
-    while True:
-        time.sleep(1)
+    Connected = False  # global variable for the state of the connection
+
+    client = mqttClient.Client("Bedroom_Fan")  # create new instance
+    client.tls_set(ca_certs=MQTT_CAFILE, certfile=MQTT_CRT, keyfile=MQTT_KEY, cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLS, ciphers=None)
+    client.username_pw_set(MQTT_USER, password=MQTT_PASSWORD)  # set username and password
+    client.on_connect = on_connect  # attach function to callback
+    client.on_message = on_message  # attach function to callback
+
+    client.connect(MQTT_HOST, port=int(MQTT_PORT))  # connect to broker
+
+    client.loop_forever()  # start the loop
+
+    while not Connected:  # Wait for connection
+        time.sleep(0.1)
+
+    client.subscribe([("/bedroom_fan/speed/set", 0), ("/bedroom_fan/light/set", 0)])
+
+# try:
+    # while True:
+        # time.sleep(1)
 
 except KeyboardInterrupt:
     logging.debug("exiting")
