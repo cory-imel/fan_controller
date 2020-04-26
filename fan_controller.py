@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(filename="/var/tmp/fan_controller.log", level=logging.DEBUG,format="%(asctime)s:%(levelname)s:%(message)s")
 
 config = configparser.ConfigParser()
-config.read('/home/xoxide/config/config.txt')
+config.read('/home/xoxide/fan_controller/config/config.txt')
 
 MQTT_HOST = config.get('SETTINGS', 'MQTT_HOST')
 MQTT_USER = config.get('SETTINGS', 'MQTT_USER')
