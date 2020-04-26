@@ -5,7 +5,7 @@ import RPi.GPIO as GPIO
 import ssl
 import logging
 
-logging.basicConfig(filename="run.log", level=logging.DEBUG,format="%(asctime)s:%(levelname)s:%(message)s")
+logging.basicConfig(filename="/var/tmp/fan_controller.log", level=logging.DEBUG,format="%(asctime)s:%(levelname)s:%(message)s")
 
 config = configparser.ConfigParser()
 config.read('config/config.txt')
